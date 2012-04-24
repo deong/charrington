@@ -126,10 +126,16 @@ def get_accounts(cp):
     accounts = []
     for section in cp.sections():
         # for each account, parse the list of groups to fetch
-        accounts.append({"name": section,
-                         "login": cp.get(section, "login"),
-                         "password": cp.get(section, "password"),
-                         "groups": map(lambda x : x.strip(), cp.get(section, "groups").split(","))})
+        if cp.has_option(section, "groups"):
+            accounts.append({"name": section,
+                             "login": cp.get(section, "login"),
+                             "password": cp.get(section, "password"),
+                             "groups": map(lambda x : x.strip(), cp.get(section, "groups").split(","))})
+        else:
+            accounts.append({"name": section,
+                             "login": cp.get(section, "login"),
+                             "password": cp.get(section, "password")})
+            
     return accounts
 
 
