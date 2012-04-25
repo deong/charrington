@@ -12,7 +12,7 @@ Features
 * Supports multiple Google accounts simultaneously
 * Allows only specific contact groups to be fetched
 * Doesn't barf on non-ASCII characters
-
+* Syncs most information (phone numbers, postal addresses, organization, etc.) 
 
 
 Usage
