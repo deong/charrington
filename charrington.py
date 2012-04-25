@@ -356,7 +356,14 @@ if __name__ == "__main__":
         exit(0)
     else:
         print_bbdb_header()
+
+        # build list of all contacts
+        contacts = []
         for acct in accts:
-            contacts = get_all_contacts(acct)
-            for contact in contacts:
-                print(format_contact_bbdb(contact).encode("utf-8"))
+            contacts += get_all_contacts(acct)
+
+        # sort and remove dups
+        contacts.sort(key=lambda x : x.last_name.lower())
+        
+        for contact in contacts:
+            print(format_contact_bbdb(contact).encode("utf-8"))
