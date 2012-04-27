@@ -361,9 +361,20 @@ def display_groups(acct):
         print("Atom Id: "+entry.id.text+"\n")
 
 
+# print out the information for a specific contact
+# This is basically a debugging tool. If you need to figure out why a particular entry
+# in the BBDB file looks borked, pass it's google id in here and you can print the
+# raw XML data returned from Google for that contact.
+def lookup_contact(acct, contact_id):
+    gdc = gdata.contacts.client.ContactsClient(source='charrington')
+    gdc.ClientLogin(acct["login"], acct["password"], gdc.source)
+    return gdc.GetContact(contact_id)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Download Google Contacts into BBDB")
     parser.add_argument("-g", "--show-groups", action="store_true", help="Display information on contact groups.")
+    parser.add_argument("-c", "--contact", help="View raw XML returned by Google Contacts API for a given contact ID.")
     args = parser.parse_args()
 
     cp = load_config()
@@ -379,6 +390,19 @@ if __name__ == "__main__":
               "~/.charringtonrc file under the matching account section. Multiple groups should\n"
               "be separated by commas.")
         exit(0)
+        
+    elif args.contact:
+        # figure out which account to query based on the login field in the Id URI
+        pat = re.compile("http://www.google.com/m8/feeds/contacts/([^/]+)/")
+        match = pat.match(args.contact)
+        if match:
+            login = match.group(1).replace("%40", "@")
+            for acct in accts:
+                if acct["login"] == login:
+                    print lookup_contact(acct, args.contact)
+                    exit(0)
+            print("No matching account to query for contact: "+args.contact)
+            
     else:
         print_bbdb_header()
 
