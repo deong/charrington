@@ -170,12 +170,12 @@ def make_contact(entry):
     # names are handled a bit weirdly here. BBDB doesn't really support
     # any rich representation of names -- it's pretty much First/Last. So
     # if a contact has "Additional Names" in Google's schema, I arbitrarily
-    # chose to prepend them to the last name field
+    # chose to append them to the first name field
     if entry.name:
         con.first_name = safe_text(entry.name.given_name)
         con.last_name = safe_text(entry.name.family_name)
         if entry.name.additional_name:
-            con.last_name = entry.name.additional_name.text + " " + con.last_name
+            con.first_name += " " + entry.name.additional_name.text
     if entry.nickname:
         con.nickname = [entry.nickname]
     if entry.organization:
