@@ -167,9 +167,15 @@ def get_all_contacts(acct):
 # friendlier data structure that can be more easily manipulated.
 def make_contact(entry):
     con = Contact()
+    # names are handled a bit weirdly here. BBDB doesn't really support
+    # any rich representation of names -- it's pretty much First/Last. So
+    # if a contact has "Additional Names" in Google's schema, I arbitrarily
+    # chose to prepend them to the last name field
     if entry.name:
         con.first_name = safe_text(entry.name.given_name)
         con.last_name = safe_text(entry.name.family_name)
+        if entry.name.additional_name:
+            con.last_name = entry.name.additional_name.text + " " + con.last_name
     if entry.nickname:
         con.nickname = [entry.nickname]
     if entry.organization:
