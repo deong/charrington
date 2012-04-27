@@ -303,9 +303,13 @@ def format_contact_bbdb(contact):
         str += u" nil"
     else:
         str += u" ("
+        first_pass = True
         for phone in contact.phone_numbers:
+            if not first_pass:
+                str += u" "
             str += u"[\"{lb}\" \"{num}\"]".format(lb=phone[PHONE_LABEL],
                                                   num=phone[PHONE_NUMBER])
+            first_pass = False
         str += u")"
 
     # write the list of postal addresses
@@ -313,11 +317,15 @@ def format_contact_bbdb(contact):
         str += u" nil"
     else:
         str += u" ("
+        first_pass = True
         for addr in contact.addresses:
-            str += u"[\"{lb}\" [\"{st}\"] \"{ci}\" \"{rg}\" \"{pc}\" \"{co}\"]"\
+            if not first_pass:
+                str += u" "
+            str += u"[\"{lb}\" (\"{st}\") \"{ci}\" \"{rg}\" \"{pc}\" \"{co}\"]"\
                    .format(lb=addr[ADDR_LABEL], st=addr[ADDR_STREET],
                            ci=addr[ADDR_CITY], rg=addr[ADDR_STATE],
                            pc=addr[ADDR_ZIP], co=addr[ADDR_COUNTRY])
+            first_pass = False
         str += u")"
 
     # write out the email addresses
@@ -325,13 +333,17 @@ def format_contact_bbdb(contact):
         str += u" nil"
     else:
         str += u" ("
+        first_pass = True
         for email in contact.email:
-            str += u"\"{em}\" ".format(em=email[EMAIL_ADDRESS])
+            if not first_pass:
+                str += u" "
+            str += u"\"{em}\"".format(em=email[EMAIL_ADDRESS])
+            first_pass = False
         str += u")"
 
     # Notes field contains an alist of assorted data; for now, I'm just storing
     # the modification date (YYYY-MM-DD)
-    str += u"("
+    str += u" ("
     str += u"(timestamp . \"{ts}\")".format(ts=contact.timestamp)
     str += u" (google-id . \"{id}\")".format(id=contact.id)
     str += u")"
