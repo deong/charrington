@@ -94,6 +94,8 @@ class Contact:
         self.email = []
         # last modification time
         self.timestamp = None
+        # google contact id
+        self.id = None
 
 
 # fields for phone number records
@@ -179,6 +181,7 @@ def make_contact(entry):
     for email in entry.email:
         con.email.append(parse_email(email))
     con.timestamp = canonicalize_date(safe_text(entry.updated))
+    con.id = entry.id.text
     return con
 
 
@@ -322,7 +325,10 @@ def format_contact_bbdb(contact):
 
     # Notes field contains an alist of assorted data; for now, I'm just storing
     # the modification date (YYYY-MM-DD)
-    str += u"((timestamp . \"{ts}\"))".format(ts=contact.timestamp)
+    str += u"("
+    str += u"(timestamp . \"{ts}\")".format(ts=contact.timestamp)
+    str += u" (google-id . \"{id}\")".format(id=contact.id)
+    str += u")"
 
     # there appears to be an additional "nil" at the end...no idea what it's for
     str += u" nil"
