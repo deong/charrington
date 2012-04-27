@@ -72,6 +72,7 @@
 import os
 import argparse
 import ConfigParser
+import re
 import atom.data
 import gdata.data
 import gdata.contacts.client
@@ -165,10 +166,8 @@ def get_all_contacts(acct):
 def make_contact(entry):
     con = Contact()
     if entry.name:
-        if entry.name.given_name:
-            con.first_name = entry.name.given_name.text
-        if entry.name.family_name:
-            con.last_name = entry.name.family_name.text
+        con.first_name = safe_text(entry.name.given_name)
+        con.last_name = safe_text(entry.name.family_name)
     if entry.nickname:
         con.nickname = [entry.nickname]
     if entry.organization:
@@ -179,6 +178,7 @@ def make_contact(entry):
         con.addresses.append(parse_address(addr_entry))
     for email in entry.email:
         con.email.append(parse_email(email))
+    con.timestamp = canonicalize_date(safe_text(entry.updated))
     return con
 
 
@@ -242,6 +242,18 @@ def safe_text(entry):
     else:
         return ", ".join(entry.text.split("\n"))
 
+
+# take a timestamp returned by Google (like "2011-12-04T01:16:11.081Z") and pull
+# out just the YYYY-MM-DD components. If the input string doesn't start with that
+# matching format, just return the string unmodified
+def canonicalize_date(ts):
+    pat = re.compile("(\d{4}-\d{2}-\d{2})")
+    m = pat.match(ts)
+    if m:
+        return m.group(0)
+    else:
+        return ts
+    
     
 # print a contact out in human readable form
 def print_contact(contact):
@@ -308,8 +320,9 @@ def format_contact_bbdb(contact):
             str += u"\"{em}\" ".format(em=email[EMAIL_ADDRESS])
         str += u")"
 
-    # for now, notes are empty, but title should go here
-    str += u" nil"
+    # Notes field contains an alist of assorted data; for now, I'm just storing
+    # the modification date (YYYY-MM-DD)
+    str += u"((timestamp . \"{ts}\"))".format(ts=contact.timestamp)
 
     # there appears to be an additional "nil" at the end...no idea what it's for
     str += u" nil"
