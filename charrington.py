@@ -105,10 +105,11 @@ PHONE_NUMBER=1
 # fields for address records
 ADDR_LABEL=0
 ADDR_STREET=1
-ADDR_CITY=2
-ADDR_STATE=3
-ADDR_ZIP=4
-ADDR_COUNTRY=5
+ADDR_NEIGHBORHOOD=2
+ADDR_CITY=3
+ADDR_STATE=4
+ADDR_ZIP=5
+ADDR_COUNTRY=6
 
 # fields for email records
 EMAIL_LABEL=0
@@ -204,18 +205,34 @@ def parse_phone(phone_entry):
     
 
 # take an instance of a gdata.data.StructuredPostalAddress and return the label and
-# address information.
+# address information. Note that some of my addresses show the city under the
+# "neighborhood" field instead of the city, for reasons I'm not sure of. The hack
+# I put in to deal with this is the following:
+#
+# If the city is empty but the neighborhood isn't, treat the neighborhood as the city.
+# If both are present, write the neighborhood as line two of the street address.
 def parse_address(addr_entry):
     label = get_label_from_schema(addr_entry)
     if addr_entry.po_box:
         street = safe_text(addr_entry.po_box)
     else:
         street = safe_text(addr_entry.street)
-    city = safe_text(addr_entry.city)
+
+    # figure out neighborhood/city distinction.
+    neighborhood = None
+    if addr_entry.neighborhood:
+        if not addr_entry.city:
+            city = addr_entry.neighborhood.text
+        else:
+            neighborhood = addr_entry.neighborhood.text
+            city = addr_entry.city.text
+    else:
+        city = safe_text(addr_entry.city)
+        
     region = safe_text(addr_entry.region)
     postcode = safe_text(addr_entry.postcode)
     country = safe_text(addr_entry.country)
-    return (label, street, city, region, postcode, country)
+    return (label, street, neighborhood, city, region, postcode, country)
 
 
 # take an instance of a gdata.data.Email and return the label, address, and primary
@@ -277,6 +294,8 @@ def print_contact(contact):
     for addr in contact.addresses:
         print(addr[ADDR_LABEL])
         print("\t"+addr[ADDR_STREET])
+        if addr[ADDR_NEIGHBORHOOD]:
+            print("\t"+addr[ADDR_NEIGHBORHOOD])
         print("\t"+addr[ADDR_CITY]+", "+addr[ADDR_STATE]+" "+addr[ADDR_ZIP])
         print("\t"+addr[ADDR_COUNTRY])
     for email in contact.email:
@@ -321,10 +340,14 @@ def format_contact_bbdb(contact):
         for addr in contact.addresses:
             if not first_pass:
                 str += u" "
-            str += u"[\"{lb}\" (\"{st}\") \"{ci}\" \"{rg}\" \"{pc}\" \"{co}\"]"\
-                   .format(lb=addr[ADDR_LABEL], st=addr[ADDR_STREET],
-                           ci=addr[ADDR_CITY], rg=addr[ADDR_STATE],
-                           pc=addr[ADDR_ZIP], co=addr[ADDR_COUNTRY])
+            if addr[ADDR_NEIGHBORHOOD]:
+                str += u"[\"{lb}\" (\"{st}\" \"{nb}\") \"{ci}\" \"{rg}\" \"{pc}\" \"{co}\"]"\
+                       .format(lb=addr[ADDR_LABEL], st=addr[ADDR_STREET], nb=addr[ADDR_NEIGHBORHOOD],
+                               ci=addr[ADDR_CITY], rg=addr[ADDR_STATE], pc=addr[ADDR_ZIP], co=addr[ADDR_COUNTRY])
+            else:
+                str += u"[\"{lb}\" (\"{st}\") \"{ci}\" \"{rg}\" \"{pc}\" \"{co}\"]"\
+                       .format(lb=addr[ADDR_LABEL], st=addr[ADDR_STREET], ci=addr[ADDR_CITY], rg=addr[ADDR_STATE],
+                               pc=addr[ADDR_ZIP], co=addr[ADDR_COUNTRY])
             first_pass = False
         str += u")"
 
