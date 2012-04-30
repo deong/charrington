@@ -70,7 +70,3 @@ This one is on the list of things to fix soon.
 
 * Charrington mostly fills out the information that makes sense in BBDB, but there is some information
 that isn't currently being used. Most notably, things like job titles are currently ignored.
-
-* Postal address formatting is a little wonky at the moment. Some contacts seem to lose street numbers,
-international addresses aren't formatted in the expected way, etc. Some of these are clearly just bugs
-I need to track down. Others may be longer-term issues.
