@@ -5,6 +5,7 @@ Like the eponymous character in &quot;1984&quot;, charrington watches who you ta
 Big Brother (DataBase). That is, it pulls down specified contact groups from one or more Google 
 Contacts accounts and writes them into BBDB format.
 
+Charrington currently requires a working Python 2.7.x installation.
 
 
 Features
