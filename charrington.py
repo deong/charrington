@@ -51,7 +51,8 @@
 #
 # There's some information in Google that could probably fit into BBDB that I'm not
 # currently doing anything with (job titles, that sort of thing).
-# 
+#
+# Note also that charrington currently requires Python 2.7.x.
 # ------------------------------------------------------------------------------------
 # 
 # # Copyright 2012 Deon Garrett <deong@cataclysmicmutation.com>
