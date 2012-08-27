@@ -180,7 +180,7 @@ def make_contact(entry):
             con.first_name += " " + entry.name.additional_name.text
     if entry.nickname:
         con.nickname = [entry.nickname]
-    if entry.organization:
+    if entry.organization and entry.organization.name:
         con.organization = entry.organization.name.text
     for ph_entry in entry.phone_number:
         con.phone_numbers.append(parse_phone(ph_entry))
@@ -253,7 +253,11 @@ def parse_email(email_entry):
 # This function grabs that last bit of the string, title-cases it, and returns
 # it as a label.
 def get_label_from_schema(entry):
-    return entry.rel.rsplit("#", 1)[1].title()
+    if entry.rel:
+        if "label=" in entry.rel:
+            return entry.rel.rsplit("label=", 1)[1].title()
+        else:
+            return entry.rel.rsplit("#", 1)[1].title()
 
 
 # normalize a structured component
