@@ -439,7 +439,7 @@ if __name__ == "__main__":
             login = match.group(1).replace("%40", "@")
             for acct in accts:
                 if acct["login"] == login:
-                    print lookup_contact(acct, args.contact)
+                    print(lookup_contact(acct, args.contact))
                     exit(0)
             print("No matching account to query for contact: "+args.contact)
             
