@@ -454,5 +454,9 @@ if __name__ == "__main__":
         # sort and remove dups
         contacts.sort(key=lambda x : x.last_name.lower())
         
+        printed = set()
         for contact in contacts:
+            if contact.id in printed:
+                continue
             print(format_contact_bbdb(contact).encode("utf-8"))
+            printed.add(contact.id)
