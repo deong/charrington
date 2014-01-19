@@ -42,6 +42,15 @@ Once you have the groups configured in your rc file, you can simply run
 Be sure to save a backup of your existing file and manually verify that the one produced by 
 Charrington works correctly in BBDB and contains all the expected contacts.
 
+As of 2014-01-19, Charrington supports contact groups as well. If you have contacts assigned to 
+groups in Google, the group name will be canonicalized (lowercased and with all special characters
+removed or converted to underscores) and written into the resulting BBDB file as a mail-alias.
+You can then insert the following lines into your `.gnus` or similar file and type the mail alias
+to expand to all members of the group. (Thanks to Pierre Crescenzo for suggesting this feature).
+
+    (add-hook 'mail-setup-hook 'bbdb-define-all-aliases)
+    (add-hook 'message-setup-hook 'bbdb-define-all-aliases)
+    
 Charrington also saves the Google-ID field associated with each contact into BBDB's notes alist.
 This will be necessary to do any sort of two-way syncing, but right now, it's mostly useful for
 debugging why something went wrong with one of your contacts. If an address or name is formatted
