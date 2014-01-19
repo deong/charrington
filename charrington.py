@@ -72,8 +72,9 @@
 
 import os
 import argparse
-import ConfigParser
+import string
 import re
+import ConfigParser
 import atom.data
 import gdata.data
 import gdata.contacts.client
@@ -97,6 +98,15 @@ class Contact:
         self.timestamp = None
         # google contact id
         self.id = None
+        # list of groups the contact appears in
+        self.groups = []
+
+
+class ContactGroup:
+    def __init__(self):
+        self.href = ""
+        self.name = ""
+        self.is_system = False
 
 
 # fields for phone number records
@@ -144,8 +154,27 @@ def get_accounts(cp):
     return accounts
 
 
+# return a map of all contact groups on the server
+def get_all_contact_groups(acct):
+    gdc = gdata.contacts.client.ContactsClient(source='charrington')
+    gdc.ClientLogin(acct["login"], acct["password"], gdc.source)
+
+    cgroups = {}
+    elements = gdc.GetGroups()
+    for i, element in enumerate(elements.entry):
+        cg = ContactGroup()
+        cg.href = element.id.text
+        cg.name = element.title.text
+        if element.system_group != None:
+            cg.is_system = True
+        else:
+            cg.is_system = False
+        cgroups[cg.href] = cg
+    return cgroups
+
+
 # fetch all the user's contacts from a given account, printing them as BBDB records
-def get_all_contacts(acct):
+def get_all_contacts(acct, groups):
     gdc = gdata.contacts.client.ContactsClient(source='charrington')
     gdc.ClientLogin(acct["login"], acct["password"], gdc.source)
 
@@ -161,7 +190,20 @@ def get_all_contacts(acct):
             # I chose to skip any items where there was no name entered.
             if not entry.name:
                 continue
-            contacts.append(make_contact(entry))
+
+            # create a contact object by parsing the element data
+            con = make_contact(entry)
+
+            # now match the group id against the list of known groups from the server.
+            # if there's a match, add the group's name to the list of groups for the contact.
+            # skip the system groups entirely.
+            if entry.group_membership_info != None:
+                for cgroup in entry.group_membership_info:
+                    if cgroup.href in groups.keys() and not groups[cgroup.href].is_system:
+                        con.groups.append(groups[cgroup.href])
+
+            # and finally add the new contact to the list
+            contacts.append(con)
     return contacts
 
 
@@ -188,6 +230,7 @@ def make_contact(entry):
         con.addresses.append(parse_address(addr_entry))
     for email in entry.email:
         con.email.append(parse_email(email))
+
     con.timestamp = canonicalize_date(safe_text(entry.updated))
     con.id = entry.id.text
     return con
@@ -285,7 +328,14 @@ def canonicalize_date(ts):
     else:
         return ts
     
-    
+
+# take a group name and return a lowercased version without special characters
+def canonicalize_group_name(gname):
+    return gname.translate(string.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ ", 
+                                            "abcdefghijklmnopqrstuvwxyz_"), 
+                           string.punctuation)
+
+
 # print a contact out in human readable form
 def print_contact(contact):
     if contact.nickname:
@@ -374,6 +424,8 @@ def format_contact_bbdb(contact):
     str += u" ("
     str += u"(timestamp . \"{ts}\")".format(ts=contact.timestamp)
     str += u" (google-id . \"{id}\")".format(id=contact.id)
+    if len(contact.groups) > 0:
+        str += u" (mail-alias . \"{alias}\")".format(alias=', '.join([canonicalize_group_name(x.name) for x in contact.groups]))
     str += u")"
 
     # there appears to be an additional "nil" at the end...no idea what it's for
@@ -446,10 +498,19 @@ if __name__ == "__main__":
     else:
         print_bbdb_header()
 
-        # build list of all contacts
+        # build a map of all groups (across all accounts)
+        # note that if you have groups with the same name in different accounts, they will be merged
+        # in the generated bbdb file
+        groups = {}
+        for acct in accts:
+            acctgroups = get_all_contact_groups(acct)
+            for groupid, group in acctgroups.items():
+                groups[groupid] = group 
+
+        # build list of all contacts across all accounts
         contacts = []
         for acct in accts:
-            contacts += get_all_contacts(acct)
+            contacts += get_all_contacts(acct, groups)
 
         # sort and remove dups
         contacts.sort(key=lambda x : x.last_name.lower())
