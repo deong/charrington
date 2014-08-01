@@ -442,6 +442,52 @@ def print_bbdb_header():
 	print(";;; file-version: 6")
 		
 
+# print the list in bbdb format
+def output_bbdb_file(contacts):
+	print_bbdb_header()
+	printed = set()
+	for contact in contacts:
+		# don't print the same contact twice
+		if contact.id in printed:
+			continue
+		# don't print entries that have no email addresses
+		if not contact.email:
+			continue
+		print(format_contact_bbdb(contact).encode("utf-8"))
+		printed.add(contact.id)
+
+
+
+# print the list in mutt format
+def output_mutt_aliases(contacts):
+	nicks = {}
+	printed = set()
+	for contact in contacts:
+		# don't print the same contact twice
+		if contact.id in printed:
+			continue
+		# don't print entries that have no email addresses
+		if not contact.email:
+			continue
+		# now iterate over each address, and create a unique alias
+		for email in contact.email:
+			fname = contact.first_name.lower().split(" ")[0]
+			nick = fname
+			if fname in nicks:
+				nick += str(nicks[fname])
+				nicks[fname] += 1
+			else:
+				nicks[fname] = 1
+			print(format_contact_mutt(nick, contact.first_name, contact.last_name, email[EMAIL_ADDRESS]).encode("utf-8"))
+		printed.add(contact.id)
+
+
+# format a contact entry in mutt's alias format
+def format_contact_mutt(nickname, first_name, last_name, addr):
+	str = u"alias {nick} {first} {last} <{email}>".format(nick=nickname,
+		first=first_name, last=last_name, email=addr)
+	return str
+
 
 # print out information for all your contact groups in a given account
 def display_groups(acct):
@@ -467,6 +513,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="Download Google Contacts into BBDB")
 	parser.add_argument("-g", "--show-groups", action="store_true", help="Display information on contact groups.")
 	parser.add_argument("-c", "--contact", help="View raw XML returned by Google Contacts API for a given contact ID.")
+	parser.add_argument("-m", "--mutt", action="store_true", help="Write output in Mutt alias format instead of BBDB")
 	args = parser.parse_args()
 
 	cp = load_config()
@@ -496,8 +543,6 @@ if __name__ == "__main__":
 			print("No matching account to query for contact: "+args.contact)
 			
 	else:
-		print_bbdb_header()
-
 		# build a map of all groups (across all accounts)
 		# note that if you have groups with the same name in different accounts, they will be merged
 		# in the generated bbdb file
@@ -515,13 +560,7 @@ if __name__ == "__main__":
 		# sort and remove dups
 		contacts.sort(key=lambda x : x.last_name.lower())
 		
-		printed = set()
-		for contact in contacts:
-			# don't print the same contact twice
-			if contact.id in printed:
-				continue
-			# don't print entries that have no email addresses
-			if len(contact.email) == 0:
-				continue
-			print(format_contact_bbdb(contact).encode("utf-8"))
-			printed.add(contact.id)
+		if args.mutt:
+			output_mutt_aliases(contacts)
+		else:
+			output_bbdb_file(contacts)
