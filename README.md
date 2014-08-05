@@ -3,7 +3,8 @@ charrington
 
 Like the eponymous character in &quot;1984&quot;, charrington watches who you talk to and tells 
 Big Brother (DataBase). That is, it pulls down specified contact groups from one or more Google 
-Contacts accounts and writes them into BBDB format.
+Contacts accounts and writes them into BBDB format. Recent versions can also write out a mutt
+aliases file.
 
 Charrington currently requires a working Python 2.7.x installation.
 
@@ -65,6 +66,41 @@ has to log you in to the correct account to fetch a contact, and you may have mo
 account, it tries to guess which account to use by pulling the login name out of the contact ID
 and matching it with one of your configured accounts. I'm not sure if the heuristic is guaranteed
 to work all the time, but it seems to work for all of my accounts at least.
+
+For a simple aliases file for use with Mutt, you can run 
+
+    charrington.py -m > ~/.mutt/aliases
+
+Note however that there are some drawbacks imposed by the way that Mutt works. Most notably, 
+aliases must be unique, whereas Google allows multiple email addresses for a given contact. With
+BBDB, this is no problem -- I simply create one record with a list of addresses, and tab completion
+in Emacs clients will display a list to choose from. This isn't possible with Mutt. If multiple
+email addresses are given for a single record, it is treated as a group, and Mutt will send mail 
+to every address.
+
+The way that Charrington supports multiple addresses for a contact is pretty simple and a bit
+hamfisted. The alias is just the lowercased first name. In case of duplicates, it simply creates a n
+ew alias for every email address that appears in the Google Contacts accounts being synced. Because
+the nickname fields must be unique, it just starts appending numbers to the first name field in all
+successive matches. For example, if you have the following contacts,
+
+    John Doe <jdoe@example.com, jdoe@workcompany.com>
+    John Smith <jsmith@pocahontas.net, john.smith@example.com>
+    John Henry Johnson <jhj@steeldrivers.net>
+
+Charrington might produce aliases like
+
+    john John Doe <jdoe@example.com>
+    john1 John Doe <jdoe@workcompany.com>
+    john2 John Smith <jsmith@pocahontas.net>
+    john3 John Smith <john.smith@example.com>
+    johnhenry John Henry Johnson <jhj@steeldrivers.net>
+
+Note the treatment of middle names. If you specifiy a middle name, it typically (always?) is treated
+as part of the first name by Charrington.
+
+This method is not foolproof. If a first name has special characters, the results are somewhat
+arbitrary. I simply call the `lower()` method on the name and remove literal spaces. 
 
 
 Limitations
