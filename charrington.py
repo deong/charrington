@@ -260,14 +260,11 @@ def parse_phone(phone_entry):
     you only have XML fragments. The number is simply the text of the XML node, which
     is easy enough to get, but the label appears to only be present as a part of a
     schema URL embedded in the "rel" attribute.
-    """ 
+    """
     phone_number = phone_entry.text
     label = get_label_from_schema(phone_entry)
     return (label, phone_number)
 
-
-# take an instance of a gdata.data.StructuredPostalAddress and return the label and
-# address information. 
 
 def parse_address(addr_entry):
     """Parse a postal address and return it as a (labeled) tuple of address components.
@@ -308,8 +305,6 @@ def parse_email(email_entry):
     return (label, email_entry.address, email_entry.primary)
 
 
-# normalize a structured component
-#
 def safe_text(entry):
     """Does a null check on the field and returns a representative string.
 
@@ -325,12 +320,10 @@ def safe_text(entry):
         return ", ".join(entry.text.split("\n"))
 
 
-# take a timestamp returned by Google (like "2011-12-04T01:16:11.081Z") and pull
-# out just the YYYY-MM-DD components. ied
 def canonicalize_date(ts):
     """Return a YYYY-MM-DD string for a given gdata timestamp.
 
-    If the input string doesn't start with that matching format, just return the 
+    If the input string doesn't start with that matching format, just return the
     string unmodified.
     """
     pat = re.compile("(\d{4}-\d{2}-\d{2})")
@@ -341,9 +334,8 @@ def canonicalize_date(ts):
         return ts
 
 
-# 
 def canonicalize_group_name(gname):
-    """Return a lowercased version of a group name without special characters.""" 
+    """Return a lowercased version of a group name without special characters."""
     return gname.translate(string.maketrans("ABCDEFGHIJKLMNOPQRSTUVWXYZ ",
                                             "abcdefghijklmnopqrstuvwxyz_"),
                            string.punctuation)
@@ -371,8 +363,6 @@ def print_contact(contact):
     print("")
 
 
-# return a contact in BBDB format
-#
 def format_contact_bbdb(contact):
     """Return a string containing a contact in BBDB format.
 
@@ -477,7 +467,7 @@ def format_contact_mutt(nickname, first_name, last_name, addr):
     """Return a string containing a contact as a Mutt alias record.
 
     Mutt aliases support only a single email address per contact (multiple addresses
-    are treated as groups). So this function writes an alias for a single given 
+    are treated as groups). So this function writes an alias for a single given
     nickname, first and last name, and address.
     """
     str = u"alias {nick} {first} {last} <{email}>".format(
