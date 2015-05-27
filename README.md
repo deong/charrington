@@ -1,3 +1,8 @@
+**Important: As of May, 2015, Charrington isn't working, due to Google removing
+  support for ClientLogin. At some point, I'll port it to using OAuth, but my
+  real job likely won't allow for the time in the next month or so. Sorry for
+  the inconvenience.**
+
 charrington
 ===========
 
