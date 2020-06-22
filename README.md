@@ -84,8 +84,7 @@ email addresses are given for a single record, it is treated as a group, and Mut
 to every address.
 
 The way that Charrington supports multiple addresses for a contact is pretty simple and a bit
-hamfisted. The alias is just the lowercased first name. In case of duplicates, it simply creates a n
-ew alias for every email address that appears in the Google Contacts accounts being synced. Because
+hamfisted. The alias is just the lowercased first name. In case of duplicates, it simply creates a new alias for every email address that appears in the Google Contacts accounts being synced. Because
 the nickname fields must be unique, it just starts appending numbers to the first name field in all
 successive matches. For example, if you have the following contacts,
 
